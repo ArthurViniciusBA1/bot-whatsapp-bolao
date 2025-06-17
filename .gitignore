@@ -1,0 +1,15 @@
+node_modules
+_IGNORE_**
+**data.json
+.env
+
+# managed
+**.data.json
+**.node-persist**
+**_IGNORE_**
+# end managed
+
+
+**.sqlite
+
+dist
