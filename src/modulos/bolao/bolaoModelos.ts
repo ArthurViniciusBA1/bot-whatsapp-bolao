@@ -34,6 +34,7 @@ const jogoBolaoSchema = new Schema<JogoBolaoDocument>({
   status: { type: String, required: true, default: 'AGENDADO' },
   placarCasa: { type: Number },
   placarFora: { type: Number },
+  notificacaoEnviada: { type: Boolean, default: false },
 });
 
 // --- Schema para os Palpites dos Utilizadores ---

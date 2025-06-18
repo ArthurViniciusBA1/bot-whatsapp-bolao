@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { removerEmojis } from 'utils/utils';
 import { JogoBolao, Palpite, UsuarioRanking } from './bolaoTipos';
 import {
@@ -5,7 +6,6 @@ import {
   PalpiteModel,
   UsuarioRankingModel,
   CounterModel,
-  JogoBolaoDocument,
 } from './bolaoModelos';
 
 /**
@@ -222,9 +222,8 @@ export async function obterMeusPalpites(
   idGrupo: string,
   idUsuario: string
 ): Promise<any[]> {
-  const palpites = await PalpiteModel.find({ idGrupo, idUsuario }); // <-- LINHA CORRIGIDA
+  const palpites = await PalpiteModel.find({ idGrupo, idUsuario });
 
-  // O resto da função, que já faz a junção manual corretamente, continua igual.
   const idJogos = palpites.map((p) => p.idJogo);
   const jogos = await JogoBolaoModel.find({ idJogo: { $in: idJogos } });
   const mapaJogos = new Map(jogos.map((j) => [j.idJogo, j]));
@@ -270,4 +269,17 @@ export async function obterJogosPendentesDeResultado(
     status: 'AGENDADO',
     dataJogo: { $lt: agora },
   }).sort({ dataJogo: 'asc' });
+}
+
+/**
+ * Conta o número total de palpites que um usuário fez em um grupo.
+ * @param idGrupo O ID do grupo.
+ * @param idUsuario O ID do usuário.
+ * @returns O número total de palpites.
+ */
+export async function contarPalpitesUsuario(
+  idGrupo: string,
+  idUsuario: string
+): Promise<number> {
+  return PalpiteModel.countDocuments({ idGrupo, idUsuario });
 }

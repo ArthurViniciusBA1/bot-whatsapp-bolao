@@ -11,6 +11,7 @@ import path from 'path';
 import { BaseCommand, ComandoCarregado } from '@/abstracts';
 import { validateEnviroments } from '@/dadosBot';
 import { connectToDatabase } from './database';
+import { enviarLembretesDePrazo } from './modulos/notificacoes/notificacoesServico';
 
 const initConfigs = {
   sessionId: 'Arthur_Bot',
@@ -34,6 +35,11 @@ async function iniciarBot(client: Client) {
   const comandosCarregados = await carregarComandos();
 
   escuta(client, comandosCarregados);
+
+  const MINUTOS = 5 * 60 * 1000;
+  setInterval(() => {
+    enviarLembretesDePrazo(client);
+  }, MINUTOS);
 
   client.autoReject('O bot não aceita ligações ❌');
 

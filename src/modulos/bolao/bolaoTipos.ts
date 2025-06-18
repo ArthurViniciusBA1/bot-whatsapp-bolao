@@ -25,6 +25,8 @@ export interface JogoBolao {
   placarCasa?: number | null;
   /** Número de gols marcados pelo time visitante. Null ou undefined se o jogo ainda não foi finalizado. */
   placarFora?: number | null;
+  /** Indica se a notificação de início do jogo já foi enviada. */
+  notificacaoEnviada: boolean;
 }
 
 /**
