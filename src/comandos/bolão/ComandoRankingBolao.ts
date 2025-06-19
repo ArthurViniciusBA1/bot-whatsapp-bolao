@@ -29,7 +29,7 @@ export class ComandoRankingBolao extends BaseCommand {
     super();
     this.descricao =
       'Mostra a classificação atual de TODOS os participantes do bolão no grupo.';
-    this.guia = `Use !${ComandoRankingBolao.nome} para ver quem está na liderança e sua pontuação, incluindo todos os participantes.`;
+    this.guia = `Use ${prefixo}${ComandoRankingBolao.nome} para ver quem está na liderança e sua pontuação, incluindo todos os participantes.`;
   }
 
   /**

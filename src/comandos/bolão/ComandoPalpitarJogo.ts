@@ -30,7 +30,7 @@ export class ComandoPalpitarJogo extends BaseCommand {
     super();
     this.descricao =
       'Registra ou atualiza seu palpite para um jogo do bolão do grupo.';
-    this.guia = `Para palpitar, use:\n"!${ComandoPalpitarJogo.nome} <ID do Jogo> <Gols Casa>x<Gols Fora>"\n\n*Exemplo:* "!${ComandoPalpitarJogo.nome} 1 2x1"\n(Para o jogo com ID 1 no bolão deste grupo, você palpita 2 gols para o time da casa e 1 gol para o time visitante).\n\nUse '${prefixo}${ComandoVerJogosBolao.nome}' para ver os IDs dos jogos abertos.`;
+    this.guia = `Para palpitar, use:\n"${prefixo}${ComandoPalpitarJogo.nome} <ID do Jogo> <Gols Casa>x<Gols Fora>"\n\n*Exemplo:* "${prefixo}${ComandoPalpitarJogo.nome} 1 2x1"\n(Para o jogo com ID 1 no bolão deste grupo, você palpita 2 gols para o time da casa e 1 gol para o time visitante).\n\nUse '${prefixo}${ComandoVerJogosBolao.nome}' para ver os IDs dos jogos abertos.`;
   }
 
   /**

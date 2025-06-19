@@ -28,7 +28,7 @@ export class ComandoPerfil extends BaseCommand {
   constructor() {
     super();
     this.descricao = 'Mostra seu perfil e estatísticas no bolão do grupo.';
-    this.guia = `Use !${ComandoPerfil.nome} para ver sua pontuação, ranking, total de palpites e taxa de acerto.`;
+    this.guia = `Use ${prefixo}${ComandoPerfil.nome} para ver sua pontuação, ranking, total de palpites e taxa de acerto.`;
   }
 
   /**

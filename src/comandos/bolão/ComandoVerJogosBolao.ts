@@ -10,6 +10,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { prefixo } from '@/dadosBot';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -42,7 +43,7 @@ export class ComandoVerJogosBolao extends BaseCommand {
     super();
     this.descricao =
       'Mostra a lista de jogos do bolão: abertos para palpites e, para admins, pendentes de resultado.';
-    this.guia = `Use "!${ComandoVerJogosBolao.nome}" para ver todas as partidas disponíveis para palpitar neste grupo e seus respectivos IDs. Admins também verão jogos que precisam de atualização de resultado.`;
+    this.guia = `Use "${prefixo}${ComandoVerJogosBolao.nome}" para ver todas as partidas disponíveis para palpitar neste grupo e seus respectivos IDs. Admins também verão jogos que precisam de atualização de resultado.`;
   }
 
   /**
