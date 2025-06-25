@@ -2,6 +2,7 @@ import { Client, Message, ContactId } from '@open-wa/wa-automate';
 import { BaseCommand } from '@/abstracts';
 import { RequerAdminUsuario, SomenteGrupo } from '@/decorators';
 import { prefixo } from '@/dadosBot';
+import { filtrarUsuariosParaMarcar } from '@/utils/utils';
 
 /**
  * @class ComandoMarcarTodos
@@ -60,19 +61,38 @@ export class ComandoMarcarTodos extends BaseCommand {
       }
 
       const participants = groupMetadata.participants;
-      const jidsParaMencionar: ContactId[] = [];
+      const todosJids: string[] = [];
 
-      let textoMensagem = '';
-
+      // Coleta todos os JIDs dos participantes
       participants.forEach((participant) => {
         const jid =
           typeof participant.id === 'string'
             ? participant.id
             : participant.id._serialized;
         if (jid) {
-          textoMensagem += `@${jid} `;
-          jidsParaMencionar.push(jid as ContactId);
+          todosJids.push(jid);
         }
+      });
+
+      // Filtra usuários que não devem ser marcados
+      const jidsParaMencionar = await filtrarUsuariosParaMarcar(todosJids);
+      
+      if (jidsParaMencionar.length === 0) {
+        await this.responder(
+          client,
+          message,
+          '🤔 Nenhum membro encontrado para mencionar (todos os membros podem ter desativado as marcações).'
+        );
+        return;
+      }
+
+      // Constrói o texto da mensagem com as menções
+      let textoMensagem = '';
+      const jidsContactId: ContactId[] = [];
+
+      jidsParaMencionar.forEach((jid) => {
+        textoMensagem += `@${jid} `;
+        jidsContactId.push(jid as ContactId);
       });
 
       const mensagemOpcional = args.join(' ');
@@ -82,20 +102,17 @@ export class ComandoMarcarTodos extends BaseCommand {
         textoMensagem = `📢 Chamando todos! ${textoMensagem}`;
       }
 
-      if (jidsParaMencionar.length === 0) {
-        await this.responder(
-          client,
-          message,
-          '🤔 Nenhum membro encontrado para mencionar (além de você talvez?).'
-        );
-        return;
+      // Adiciona informação sobre usuários filtrados
+      const usuariosFiltrados = todosJids.length - jidsParaMencionar.length;
+      if (usuariosFiltrados > 0) {
+        textoMensagem += `\n\nℹ️ ${usuariosFiltrados} usuário(s) não foram marcados pois desativaram as marcações.`;
       }
 
       await client.sendTextWithMentions(
         chatId,
         textoMensagem.trim(),
         false,
-        jidsParaMencionar
+        jidsContactId
       );
     } catch (error) {
       console.error(`Erro no comando ${ComandoMarcarTodos.nome}:`, error);

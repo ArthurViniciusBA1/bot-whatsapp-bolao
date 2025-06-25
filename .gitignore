@@ -1,7 +1,8 @@
 node_modules
 _IGNORE_**
-**data.json
+**.json
 .env
+
 
 # managed
 **.data.json

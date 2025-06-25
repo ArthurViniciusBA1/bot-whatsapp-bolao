@@ -4,6 +4,7 @@ import { SomenteGrupo, RequerAdminUsuario } from '@/decorators';
 import { atualizarResultadoJogoESimultaneamenteProcessarPalpites } from '@/modulos';
 import { prefixo } from '@/dadosBot';
 import { ComandoVerJogosBolao } from './ComandoVerJogosBolao';
+import { filtrarUsuariosParaMarcar } from '@/utils/utils';
 
 /**
  * @class ComandoAtualizarResultadoBolao
@@ -118,22 +119,38 @@ export class ComandoAtualizarResultadoBolao extends BaseCommand {
           resultadoServico.acertadores &&
           resultadoServico.acertadores.length > 0
         ) {
-          let textoParaMencao =
-            '\n🎉 Parabéns aos craques que acertaram o placar:\n\n';
-          const jidsParaMencionar: ContactId[] = [];
-
-          resultadoServico.acertadores.forEach((acertador) => {
-            textoParaMencao += `@${acertador.idUsuario} \n`;
-            jidsParaMencionar.push(acertador.idUsuario as ContactId);
-          });
-          textoParaMencao = textoParaMencao.trim() + ' 🎯';
-
-          await client.sendTextWithMentions(
-            message.chatId,
-            textoParaMencao,
-            false,
-            jidsParaMencionar
+          // Filtra os acertadores para não marcar quem não deseja
+          const idsAcertadores = resultadoServico.acertadores.map(
+            (a) => a.idUsuario
           );
+          const idsParaMencionar =
+            await filtrarUsuariosParaMarcar(idsAcertadores);
+
+          if (idsParaMencionar.length > 0) {
+            let textoParaMencao =
+              '\n🎉 Parabéns aos craques que acertaram o placar:\n\n';
+            const jidsParaMencionar: ContactId[] = [];
+
+            resultadoServico.acertadores.forEach((acertador) => {
+              if (idsParaMencionar.includes(acertador.idUsuario)) {
+                textoParaMencao += `@${acertador.idUsuario} \n`;
+                jidsParaMencionar.push(acertador.idUsuario as ContactId);
+              }
+            });
+            textoParaMencao = textoParaMencao.trim() + ' 🎯';
+
+            await client.sendTextWithMentions(
+              message.chatId,
+              textoParaMencao,
+              false,
+              jidsParaMencionar
+            );
+          } else {
+            await client.sendText(
+              message.chatId,
+              '🤔 Ninguém para mencionar (todos os acertadores desativaram as marcações).'
+            );
+          }
         } else {
           await client.sendText(
             message.chatId,

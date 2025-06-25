@@ -1,6 +1,7 @@
 import { ChatId, Client, ContactId, GroupChatId } from '@open-wa/wa-automate';
 import { JogoBolaoModel } from '../bolao/bolaoModelos';
-import { obterPalpitesPorJogoEGrupo } from '../bolao/bolaoServico'; // Importe esta função
+import { obterPalpitesPorJogoEGrupo } from '../bolao/bolaoServico';
+import { filtrarUsuariosParaMarcar } from '@/utils/utils';
 import dayjs from 'dayjs';
 
 const MINUTOS_ANTES_PARA_LEMBRETE = 10;
@@ -40,28 +41,24 @@ export async function enviarLembretesDePrazo(client: Client) {
 
   for (const jogo of jogosParaLembrar) {
     try {
-      // 1. Obter a lista de todos os participantes do grupo
       const todosOsMembros = await client.getGroupMembers(
         jogo.idGrupo as GroupChatId
       );
       const todosOsMembrosIds = todosOsMembros.map((membro) => membro.id);
-
-      // 2. Obter a lista de quem já palpitou neste jogo
       const palpitesDoJogo = await obterPalpitesPorJogoEGrupo(
         jogo.idJogo,
         jogo.idGrupo
       );
-      // Usamos um Set para uma verificação mais rápida (O(1) em média)
       const idsDeQuemPalpitou = new Set(palpitesDoJogo.map((p) => p.idUsuario));
-
-      // 3. Filtrar para encontrar quem ainda NÃO palpitou
-      // Também removemos o próprio bot da lista de menções
       const botId = (await client.getHostNumber()) + '@c.us';
-      const usuariosParaMarcar = todosOsMembrosIds.filter(
+      const usuariosQueNaoPalpitaram = todosOsMembrosIds.filter(
         (id) => !idsDeQuemPalpitou.has(id) && id !== botId
       );
 
-      // 4. Se houver usuários para marcar, construa e envie a mensagem
+      const usuariosParaMarcar = await filtrarUsuariosParaMarcar(
+        usuariosQueNaoPalpitaram
+      );
+
       if (usuariosParaMarcar.length > 0) {
         const dataLimitePalpite = dayjs(jogo.dataLimitePalpite).format('HH:mm');
         let mencoes = '';
@@ -87,11 +84,10 @@ export async function enviarLembretesDePrazo(client: Client) {
         );
       } else {
         console.log(
-          `Todos palpitaram no jogo ${jogo.idJogo}. Nenhum lembrete enviado.`
+          `Todos palpitaram no jogo ${jogo.idJogo} ou desativaram marcações. Nenhum lembrete enviado.`
         );
       }
 
-      // 5. Marca o jogo como notificado para não enviar novamente
       jogo.notificacaoEnviada = true;
       await jogo.save();
     } catch (error) {
