@@ -7,6 +7,13 @@ import {
   UsuarioRankingModel,
   CounterModel,
 } from './bolaoModelos';
+import dayjs from 'dayjs';
+import 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(timezone);
+dayjs.extend(utc);
 
 /**
  * Obtém o próximo número de uma sequência.
@@ -69,7 +76,9 @@ export async function registrarOuAtualizarPalpite(
     };
   }
 
-  if (new Date() > new Date(jogo.dataLimitePalpite)) {
+  if (
+    dayjs().tz('America/Sao_Paulo').toDate() > new Date(jogo.dataLimitePalpite)
+  ) {
     return {
       sucesso: false,
       mensagem: '⏰ Palpites para este jogo foram encerrados.',
@@ -85,7 +94,11 @@ export async function registrarOuAtualizarPalpite(
       idUsuario: dadosPalpite.idUsuario,
       idJogo: dadosPalpite.idJogo,
     },
-    { ...dadosPalpite, nomeUsuario: nomeUsuarioFinal, dataPalpite: new Date() },
+    {
+      ...dadosPalpite,
+      nomeUsuario: nomeUsuarioFinal,
+      dataPalpite: dayjs().tz('America/Sao_Paulo').toDate(),
+    },
     { upsert: true, new: true }
   );
 
@@ -204,7 +217,7 @@ export async function obterPalpitesPorJogoEGrupo(
 export async function obterJogosAbertosParaPalpite(
   idGrupo: string
 ): Promise<JogoBolao[]> {
-  const agora = new Date();
+  const agora = dayjs().tz('America/Sao_Paulo').toDate();
   return JogoBolaoModel.find({
     idGrupo,
     status: 'AGENDADO',
@@ -263,7 +276,7 @@ export async function obterRankingGrupo(
 export async function obterJogosPendentesDeResultado(
   idGrupo: string
 ): Promise<JogoBolao[]> {
-  const agora = new Date();
+  const agora = dayjs().tz('America/Sao_Paulo').toDate();
   return JogoBolaoModel.find({
     idGrupo,
     status: 'AGENDADO',

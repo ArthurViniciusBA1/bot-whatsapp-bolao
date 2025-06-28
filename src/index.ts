@@ -2,8 +2,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { create, Client } from '@open-wa/wa-automate';
-import moment from 'moment-timezone';
-moment.tz.setDefault('America/Sao_Paulo');
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 import { escuta } from '@/processamentoMensagens';
 import fs from 'fs';
@@ -52,8 +55,8 @@ async function iniciarBot(client: Client) {
 
 function logsDeIncializacao() {
   const os = require('os');
-  const dataDeInicio = moment().format('DD/MM');
-  const horaDeInicio = moment().format('HH:mm:ss');
+  const dataDeInicio = dayjs().tz('America/Sao_Paulo').format('DD/MM');
+  const horaDeInicio = dayjs().tz('America/Sao_Paulo').format('HH:mm:ss');
 
   const memoriaTotal = (os.totalmem() / 1024000000).toFixed(2);
   const memoriaUsada = ((os.totalmem() - os.freemem()) / 1024000000).toFixed(2);

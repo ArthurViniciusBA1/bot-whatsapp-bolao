@@ -34,7 +34,7 @@ export const NOME_DE_EXIBICAO_BOT: string =
 /**
  * Prefixo para os comandos do bot, carregado do .env.
  */
-export const prefixo: string = process.env.PREFIX || '!';
+export const prefixo: string = process.env.PREFIXO || '!';
 
 export function validateEnviroments(): void {
   console.clear();

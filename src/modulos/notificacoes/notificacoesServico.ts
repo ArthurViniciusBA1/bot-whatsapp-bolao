@@ -60,7 +60,9 @@ export async function enviarLembretesDePrazo(client: Client) {
       );
 
       if (usuariosParaMarcar.length > 0) {
-        const dataLimitePalpite = dayjs(jogo.dataLimitePalpite).format('HH:mm');
+        const dataLimitePalpite = dayjs(jogo.dataLimitePalpite)
+          .tz('America/Sao_Paulo')
+          .format('HH:mm');
         let mencoes = '';
         usuariosParaMarcar.forEach((id) => {
           mencoes += `@${id.split('@')[0]} `;
