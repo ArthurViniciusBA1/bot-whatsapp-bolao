@@ -1,0 +1,38 @@
+services:
+  bot:
+    build: .
+    container_name: novo-bot
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NUMERO_DONO=${NUMERO_DONO}
+      - PREFIX=${PREFIX}
+      - NOME_DE_EXIBICAO=${NOME_DE_EXIBICAO}
+      - NOME_AUTOR_FIGURINHAS=${NOME_AUTOR_FIGURINHAS}
+      - NOME_PACOTE_FIGURINHAS=${NOME_PACOTE_FIGURINHAS}
+      - MONGO_URI=${MONGO_URI}
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    volumes:
+      - bot-session-data:/app/sessions
+      - bot-logs:/app/logs
+    networks:
+      - bot-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+volumes:
+  bot-session-data:
+    driver: local
+  bot-logs:
+    driver: local
+
+networks:
+  bot-network:
+    driver: bridge 
