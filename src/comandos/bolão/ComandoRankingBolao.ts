@@ -1,4 +1,4 @@
-import { Client, Message } from '@open-wa/wa-automate';
+import * as baileys from '@whiskeysockets/baileys';
 import { BaseCommand } from '@/abstracts';
 import { SomenteGrupo } from '@/decorators';
 import { obterRankingGrupo, UsuarioRanking } from '@/modulos';
@@ -36,18 +36,18 @@ export class ComandoRankingBolao extends BaseCommand {
    * @async
    * @method executar
    * @description Executa o comando para exibir o ranking completo do bolão do grupo.
-   * @param {Client} client - Instância do cliente WA.
-   * @param {Message} message - Objeto da mensagem original.
+   * @param {baileys.WASocket} client - Instância do cliente WA.
+   * @param {baileys.WAMessage} message - Objeto da mensagem original.
    * @param {string[]} [_args] - Argumentos passados (não utilizados neste comando).
    * @returns {Promise<void>}
    */
   @SomenteGrupo
   async executar(
-    client: Client,
-    message: Message,
+    client: baileys.WASocket,
+    message: baileys.WAMessage,
     _args?: string[]
   ): Promise<void> {
-    const idGrupo = message.chatId;
+    const idGrupo = this.getChatJid(message);
 
     try {
       const ranking: UsuarioRanking[] = await obterRankingGrupo(idGrupo);

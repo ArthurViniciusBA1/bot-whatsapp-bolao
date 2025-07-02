@@ -1,4 +1,4 @@
-import { Client, Message } from '@open-wa/wa-automate';
+import * as baileys from "@whiskeysockets/baileys";
 import { BaseCommand } from '@/abstracts';
 import { SomenteGrupo } from '@/decorators';
 import { obterMeusPalpites, Palpite, JogoBolao } from '@/modulos';
@@ -45,19 +45,19 @@ export class ComandoMeusPalpites extends BaseCommand {
    * @async
    * @method executar
    * @description Executa o comando para listar os palpites do usuário para jogos agendados.
-   * @param {Client} client - Instância do cliente WA.
-   * @param {Message} message - Objeto da mensagem original.
+   * @param {WASocket} client - Instância do cliente WA.
+   * @param {WAMessage} message - Objeto da mensagem original.
    * @param {string[]} [_args] - Argumentos passados (não utilizados neste comando).
    * @returns {Promise<void>}
    */
   @SomenteGrupo
   async executar(
-    client: Client,
-    message: Message,
+    client: baileys.WASocket,
+    message: baileys.WAMessage,
     _args?: string[]
   ): Promise<void> {
-    const idGrupo = message.chatId;
-    const idUsuario = message.sender.id;
+    const idGrupo = this.getChatJid(message);
+    const idUsuario = this.getSenderJid(message);
 
     try {
       const meusPalpitesComJogo = await obterMeusPalpites(idGrupo, idUsuario);

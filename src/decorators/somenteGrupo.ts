@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Client, Message } from '@open-wa/wa-automate';
+import * as baileys from "@whiskeysockets/baileys";
 
 export function SomenteGrupo(
   target: any,
@@ -8,20 +7,13 @@ export function SomenteGrupo(
 ) {
   const metodoOriginal = descriptor.value;
 
-  descriptor.value = async function (
-    client: Client,
-    message: Message,
-    ...args: any[]
-  ) {
-    if (!message.isGroupMsg) {
-      await client.reply(
-        message.chatId,
-        '❌ Este comando só pode ser usado em grupos.',
-        message.id
-      );
+  descriptor.value = async function (sock: baileys.WASocket, message: baileys.WAMessage, ...args: any[]) {
+    const jid = message.key.remoteJid;
+    if (!jid || !jid.endsWith('@g.us')) {
+      await sock.sendMessage(jid!, { text: '❌ Este comando só pode ser usado em grupos.' }, { quoted: message });
       return;
     }
 
-    return metodoOriginal.apply(this, [client, message, ...args]);
+    return metodoOriginal.apply(this, [sock, message, ...args]);
   };
 }

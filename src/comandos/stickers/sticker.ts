@@ -1,33 +1,12 @@
-import { Client, Message } from '@open-wa/wa-automate';
-import { decryptMedia } from '@open-wa/wa-decrypt';
-import { BaseCommand } from '@/abstracts/BaseCommand';
-import {
-  nomeAutorFigurinhas,
-  nomePacoteDeFigurinhas,
-  prefixo,
-} from '@/dadosBot';
+import * as baileys from "@whiskeysockets/baileys";
+import { Sticker, StickerTypes } from 'wa-sticker-formatter';
+import { BaseCommand } from '@/abstracts';
+import { nomeAutorFigurinhas, nomePacoteDeFigurinhas, prefixo } from '@/dadosBot';
 
-/**
- * @class StickerCommand
- * @classdesc Comando para criar figurinhas a partir de imagens, vídeos ou GIFs.
- * @extends BaseCommand
- */
 export class StickerCommand extends BaseCommand {
-  /**
-   * @static
-   * @property {string} nome - O nome do comando.
-   */
   static nome = 's';
-  /**
-   * @static
-   * @property {string} categoria - A categoria do comando.
-   */
-  static categoria = 'Utilidades'; // Mantido como 'Utilidades' conforme o original, mas pode ser 'Stickers'
+  static categoria = 'Utilidades';
 
-  /**
-   * @constructor
-   * @description Cria uma instância do StickerCommand.
-   */
   constructor() {
     super();
     this.descricao = 'Cria uma figurinha a partir de imagem, vídeo ou gif.';
@@ -37,103 +16,61 @@ export class StickerCommand extends BaseCommand {
 Crie figurinhas a partir de imagens, vídeos ou GIFs com opções personalizadas:
 
 🖼️ *Imagem*
-• *${prefixo}${StickerCommand.nome}* → Figurinha padrão  
-• *!s r* → Figurinha *redonda* • *!s s* → Figurinha *sem manter escala*
+• *${prefixo}${StickerCommand.nome}* → Figurinha padrão
+• *${prefixo}${StickerCommand.nome} r* → Figurinha *redonda*
 
 🎞️ *Vídeo ou GIF (até 10 segundos)*
-• *!s* → Sticker animado *recortado (crop)* • *!s s* → Sem crop, *mantém vídeo original* 💬 *Dica:* Use o comando na legenda da mídia ou responda a uma mídia enviada anteriormente.
+• *${prefixo}${StickerCommand.nome}* → Sticker animado
+
+💬 *Dica:* Use o comando na legenda da mídia ou responda a uma mídia enviada anteriormente.
 `;
   }
 
-  /**
-   * @async
-   * @method executar
-   * @description Executa o comando para criar uma figurinha.
-   * @param {Client} client - Instância do cliente WA.
-   * @param {Message} message - Objeto da mensagem original.
-   * @returns {Promise<void>}
-   */
-  async executar(client: Client, message: Message): Promise<void> {
-    const { isMedia, quotedMsg, caption, body, id, chatId } = message;
+  async executar(sock: baileys.WASocket, message: baileys.WAMessage, args: string[]): Promise<void> {
+    const jid = message.key.remoteJid!;
+    const quoted = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+    const type = Object.keys(message.message!)[0];
+    const quotedType = quoted ? Object.keys(quoted)[0] : null;
 
-    const isSticker = quotedMsg?.type === 'sticker';
-    const isValidMedia = isMedia || quotedMsg?.isMedia || isSticker;
-    if (!isValidMedia) {
-      this.responderMarcando(
-        client,
-        message,
-        '[❗] Envie ou marque uma mídia válida (imagem, vídeo ou figurinha).'
-      );
+    const isMedia = type === 'imageMessage' || type === 'videoMessage';
+    const isQuotedMedia = quotedType === 'imageMessage' || quotedType === 'videoMessage';
+
+    if (!isMedia && !isQuotedMedia) {
+      await this.responderMarcando(sock, message, '[❗] Envie ou marque uma mídia válida (imagem ou vídeo).');
       return;
     }
-    const text = caption || body;
-    const arg = text.split(' ')[1];
-    const stickerMetadata = {
-      author: nomeAutorFigurinhas,
+
+    const arg = args[0]?.toLowerCase();
+    const stickerMetadata: any = {
       pack: nomePacoteDeFigurinhas,
-      keepScale: true,
-      circle: false,
+      author: nomeAutorFigurinhas,
+      quality: 50,
+      type: StickerTypes.FULL,
     };
 
     if (arg === 'r') {
-      stickerMetadata.circle = true;
-      stickerMetadata.keepScale = true;
-    } else if (arg === 's') {
-      stickerMetadata.keepScale = false;
-    } else if (['rs', 'sr'].includes(arg)) {
-      stickerMetadata.circle = true;
-      stickerMetadata.keepScale = false;
+        stickerMetadata.type = StickerTypes.CIRCLE;
     }
 
-    const alvo = isMedia ? message : quotedMsg!;
-    const mediaData = await decryptMedia(alvo);
-
-    const base64 = `data:${alvo.mimetype};base64,${mediaData.toString(
-      'base64'
-    )}`;
-
     try {
-      if (alvo.type === 'image' || isSticker) {
-        await client.sendImageAsStickerAsReply(
-          chatId,
-          base64,
-          id,
-          stickerMetadata
-        );
-      } else if (alvo.type === 'video') {
-        if (+alvo.duration > 10) {
-          this.responderMarcando(
-            client,
-            message,
-            '[❗] Envie um vídeo/gif com no máximo 10 segundos.'
-          );
-          return;
+        await this.reagir(sock, message, '🎨');
+
+        const messageToDownload = isQuotedMedia ? quoted! : message.message!;
+        const mediaType = isQuotedMedia ? quotedType! : type;
+        const stream = await baileys.downloadContentFromMessage(messageToDownload[mediaType], mediaType.replace('Message', '') as any);
+
+        let buffer = Buffer.from([]);
+        for await (const chunk of stream) {
+            buffer = Buffer.concat([buffer, chunk]);
         }
 
-        const config = {
-          endTime: '00:00:20.0',
-          crop: !arg?.includes('s'),
-          fps: 15,
-          square: 240,
-        };
+        const sticker = new Sticker(buffer, stickerMetadata);
+        await sock.sendMessage(jid, await sticker.toMessage(), { quoted: message });
 
-        await client.sendMp4AsSticker(chatId, base64, config, stickerMetadata);
-      } else {
-        this.responderMarcando(
-          client,
-          message,
-          '[❗] Tipo de mídia não suportado.'
-        );
-        return;
-      }
     } catch (err) {
-      console.error(err);
-      this.responderMarcando(
-        client,
-        message,
-        '[❗] Erro ao processar imagem. Tente novamente mais tarde.'
-      );
-      return;
+        console.error("Erro ao criar sticker:", err);
+        await this.responderMarcando(sock, message, '[❗] Erro ao processar a mídia. Tente novamente.');
+        await this.reagir(sock, message, '❌');
     }
   }
 }

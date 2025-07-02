@@ -1,4 +1,4 @@
-import { Client, Message, ContactId } from '@open-wa/wa-automate';
+import * as baileys from '@whiskeysockets/baileys';
 import { BaseCommand } from '@/abstracts';
 import { SomenteGrupo, RequerAdminUsuario } from '@/decorators';
 import { atualizarResultadoJogoESimultaneamenteProcessarPalpites } from '@/modulos';
@@ -43,21 +43,21 @@ export class ComandoAtualizarResultadoBolao extends BaseCommand {
    * @method executar
    * @description Executa o comando para atualizar o resultado de um jogo do bolão, processar os palpites
    * e mencionar os usuários que acertaram o placar ou informar se ninguém acertou.
-   * @param {Client} client - Instância do cliente WA.
-   * @param {Message} message - Objeto da mensagem original.
+   * @param {WASocket} sock - Instância do cliente WA.
+   * @param {WAMessage} message - Objeto da mensagem original.
    * @param {string[]} args - Argumentos esperados: [idJogoBolao, placarNoFormato "CasaxFora"].
    * @returns {Promise<void>}
    */
   @SomenteGrupo
   @RequerAdminUsuario
   async executar(
-    client: Client,
-    message: Message,
+    sock: baileys.WASocket,
+    message: baileys.WAMessage,
     args: string[]
   ): Promise<void> {
     if (args.length < 2) {
       await this.responderMarcando(
-        client,
+        sock,
         message,
         `⚠️ Formato incorreto!\n${this.guia}`
       );
@@ -70,7 +70,7 @@ export class ComandoAtualizarResultadoBolao extends BaseCommand {
     const idJogoBolao = parseInt(idJogoBolaoStr, 10);
     if (isNaN(idJogoBolao) || idJogoBolao <= 0) {
       await this.responderMarcando(
-        client,
+        sock,
         message,
         `❌ O ID do Jogo do Bolão (da nossa base de dados) deve ser um número válido e positivo. Use \`${prefixo}${ComandoVerJogosBolao.nome}\` para listar os jogos e seus IDs.`
       );
@@ -80,7 +80,7 @@ export class ComandoAtualizarResultadoBolao extends BaseCommand {
     const placarParts = placarRealStr.split('x');
     if (placarParts.length !== 2) {
       await this.responderMarcando(
-        client,
+        sock,
         message,
         `⚠️ Formato do placar incorreto! Use <Gols Casa>x<Gols Fora>, por exemplo: \`3x0\`.\n\n${this.guia}`
       );
@@ -97,7 +97,7 @@ export class ComandoAtualizarResultadoBolao extends BaseCommand {
       placarForaReal < 0
     ) {
       await this.responderMarcando(
-        client,
+        sock,
         message,
         '❌ Os gols do resultado devem ser números válidos e não negativos (0, 1, 2, etc.).'
       );
@@ -112,7 +112,7 @@ export class ComandoAtualizarResultadoBolao extends BaseCommand {
           placarForaReal
         );
 
-      await this.responderMarcando(client, message, resultadoServico.mensagem);
+      await this.responderMarcando(sock, message, resultadoServico.mensagem);
 
       if (resultadoServico.sucesso) {
         if (
@@ -129,32 +129,33 @@ export class ComandoAtualizarResultadoBolao extends BaseCommand {
           if (idsParaMencionar.length > 0) {
             let textoParaMencao =
               '\n🎉 Parabéns aos craques que acertaram o placar:\n\n';
-            const jidsParaMencionar: ContactId[] = [];
+            const jidsParaMencionar: string[] = [];
 
             resultadoServico.acertadores.forEach((acertador) => {
               if (idsParaMencionar.includes(acertador.idUsuario)) {
                 textoParaMencao += `@${acertador.idUsuario} \n`;
-                jidsParaMencionar.push(acertador.idUsuario as ContactId);
+                jidsParaMencionar.push(acertador.idUsuario);
               }
             });
             textoParaMencao = textoParaMencao.trim() + ' 🎯';
 
-            await client.sendTextWithMentions(
-              message.chatId,
-              textoParaMencao,
-              false,
-              jidsParaMencionar
+            await sock.sendMessage(
+              message.key.remoteJid!,
+              { text: textoParaMencao, mentions: jidsParaMencionar },
+              { quoted: message }
             );
           } else {
-            await client.sendText(
-              message.chatId,
-              '🤔 Ninguém para mencionar (todos os acertadores desativaram as marcações).'
+            await sock.sendMessage(
+              message.key.remoteJid!,
+              { text: '🤔 Ninguém para mencionar (todos os acertadores desativaram as marcações).' },
+              { quoted: message }
             );
           }
         } else {
-          await client.sendText(
-            message.chatId,
-            '🤷‍♂️ Ninguém acertou o placar desta vez! Vocês não sabem nada de bola 😂'
+          await sock.sendMessage(
+            message.key.remoteJid!,
+            { text: '🤷‍♂️ Ninguém acertou o placar desta vez! Vocês não sabem nada de bola 😂' },
+            { quoted: message }
           );
         }
       }
@@ -162,17 +163,17 @@ export class ComandoAtualizarResultadoBolao extends BaseCommand {
       console.error(
         `Erro ao executar comando ${ComandoAtualizarResultadoBolao.nome}:`,
         error
-      ); // Usar nome estático
+      );
       if (
         error &&
         typeof error === 'object' &&
         'mensagem' in error &&
         typeof error.mensagem === 'string'
       ) {
-        await this.responderMarcando(client, message, error.mensagem);
+        await this.responderMarcando(sock, message, error.mensagem);
       } else {
         await this.responderMarcando(
-          client,
+          sock,
           message,
           '❌ Ops! Ocorreu um erro interno inesperado ao tentar atualizar o resultado do jogo.'
         );

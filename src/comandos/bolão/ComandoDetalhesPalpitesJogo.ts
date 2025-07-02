@@ -1,4 +1,4 @@
-import { Client, Message } from '@open-wa/wa-automate';
+import * as baileys from "@whiskeysockets/baileys";
 import { BaseCommand } from '@/abstracts'; // Ajuste o caminho
 import { SomenteGrupo, RequerAdminUsuario } from '@/decorators'; // Ajuste o caminho
 import { obterJogoPorIdEGrupo, obterPalpitesPorJogoEGrupo } from '@/modulos'; // Ajuste o caminho
@@ -41,19 +41,19 @@ export class ComandoDetalhesPalpitesJogo extends BaseCommand {
    * @async
    * @method executar
    * @description Executa o comando para listar os detalhes dos palpites de um jogo.
-   * @param {Client} client - Instância do cliente WA.
-   * @param {Message} message - Objeto da mensagem original.
+   * @param {WASocket} client - Instância do cliente WA.
+   * @param {WAMessage} message - Objeto da mensagem original.
    * @param {string[]} args - Argumentos esperados: [idJogoBolao].
    * @returns {Promise<void>}
    */
   @SomenteGrupo
   @RequerAdminUsuario
   async executar(
-    client: Client,
-    message: Message,
+    client: baileys.WASocket,
+    message: baileys.WAMessage,
     args: string[]
   ): Promise<void> {
-    const idGrupo = message.chatId;
+    const idGrupo = this.getChatJid(message);
 
     if (args.length < 1) {
       await this.responderMarcando(

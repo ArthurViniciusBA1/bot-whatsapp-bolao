@@ -1,4 +1,4 @@
-import { Client, Message, MessageId } from '@open-wa/wa-automate';
+import * as baileys from "@whiskeysockets/baileys";
 import { BaseCommand } from '../../abstracts/BaseCommand';
 
 /**
@@ -33,12 +33,12 @@ export class PingCommand extends BaseCommand {
    * @async
    * @method executar
    * @description Executa o comando ping, respondendo "Pong!" para o usuário.
-   * @param {Client} client - Instância do cliente WA.
-   * @param {Message} message - Objeto da mensagem original.
+   * @param {WASocket} client - Instância do cliente WA.
+   * @param {WAMessage} message - Objeto da mensagem original.
    * @returns {Promise<void>}
    */
-  async executar(client: Client, message: Message): Promise<void> {
-    const id = await this.responderMarcando(client, message, 'Pong!');
-    await this.reagir(client, id as MessageId, '👍');
+  async executar(client: baileys.WASocket, message: baileys.WAMessage): Promise<void> {
+    const id = await this.responderMarcando(client, message, 'Tô pertubando');
+    await this.reagir(client, message, '👍');
   }
 }

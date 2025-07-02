@@ -5,13 +5,6 @@
 export const JID_DONO: string = process.env.NUMERO_DONO + '@c.us' || '';
 
 /**
- * Chave da API para football-data.org, carregada do .env.
- * Usada no módulo de futebol.
- */
-export const FOOTBALL_DATA_API_KEY: string =
-  process.env.FOOTBALL_DATA_API_KEY || '';
-
-/**
  * Nome do autor para os pacotes de figurinhas, carregado do .env.
  * Se não definido no .env, usa um valor padrão.
  */
@@ -50,14 +43,6 @@ export function validateEnviroments(): void {
     );
   } else {
     console.log(`JID_DONO: Configurado (${JID_DONO.substring(0, 5)}...)`);
-  }
-
-  if (!FOOTBALL_DATA_API_KEY) {
-    console.warn(
-      "AVISO: 'FOOTBALL_DATA_API_KEY' não está definida no .env. Funcionalidades de futebol com football-data.org podem falhar."
-    );
-  } else {
-    console.log('FOOTBALL_DATA_API_KEY: Configurada.');
   }
 
   if (!prefixo || prefixo.length === 0) {

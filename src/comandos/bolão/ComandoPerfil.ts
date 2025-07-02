@@ -1,4 +1,4 @@
-import { Client, Message } from '@open-wa/wa-automate';
+import * as baileys from "@whiskeysockets/baileys";
 import { BaseCommand } from '@/abstracts';
 import { SomenteGrupo } from '@/decorators';
 import { obterRankingGrupo, contarPalpitesUsuario } from '@/modulos';
@@ -35,15 +35,15 @@ export class ComandoPerfil extends BaseCommand {
    * @async
    * @method executar
    * @description Executa o comando para exibir o perfil do usuário.
-   * @param {Client} client - Instância do cliente WA.
-   * @param {Message} message - Objeto da mensagem original.
+   * @param {WASocket} client - Instância do cliente WA.
+   * @param {WAMessage} message - Objeto da mensagem original.
    * @returns {Promise<void>}
    */
   @SomenteGrupo
-  async executar(client: Client, message: Message): Promise<void> {
-    const idGrupo = message.chatId;
-    const idUsuario = message.sender.id;
-    const nomeUsuario = message.sender.pushname || idUsuario.split('@')[0];
+  async executar(client: baileys.WASocket, message: baileys.WAMessage): Promise<void> {
+    const idGrupo = this.getChatJid(message);
+    const idUsuario = this.getSenderJid(message);
+    const nomeUsuario = this.getSenderName(message);
 
     try {
       const rankingCompleto = await obterRankingGrupo(idGrupo);

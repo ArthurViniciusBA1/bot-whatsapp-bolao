@@ -1,4 +1,4 @@
-import { Client, Message } from '@open-wa/wa-automate';
+import * as baileys from "@whiskeysockets/baileys";
 import { BaseCommand } from '@/abstracts';
 import { SomenteGrupo } from '@/decorators';
 import { registrarOuAtualizarPalpite } from '@/modulos';
@@ -37,23 +37,21 @@ export class ComandoPalpitarJogo extends BaseCommand {
    * @async
    * @method executar
    * @description Executa o comando para registrar um palpite.
-   * @param {Client} client - Instância do cliente WA.
-   * @param {Message} message - Objeto da mensagem original.
+   * @param {WASocket} client - Instância do cliente WA.
+   * @param {WAMessage} message - Objeto da mensagem original.
    * @param {string[]} args - Argumentos: [idJogo, placar (ex: "2x1")].
    * @returns {Promise<void>}
    */
   @SomenteGrupo
   async executar(
-    client: Client,
-    message: Message,
+    client: baileys.WASocket,
+    message: baileys.WAMessage,
     args: string[]
   ): Promise<void> {
-    const idGrupo = message.chatId;
-    const idUsuario = message.sender.id;
-    const nomeUsuario =
-      message.sender.pushname ||
-      message.sender.formattedName ||
-      idUsuario.split('@')[0];
+    const idGrupo = this.getChatJid(message);
+    const idUsuario = this.getSenderJid(message);
+    const nomeUsuario = this.getSenderName(message);
+    const texto = this.getTextFromMessage(message);
 
     if (args.length < 2) {
       await this.responderMarcando(
@@ -123,7 +121,7 @@ export class ComandoPalpitarJogo extends BaseCommand {
         palpiteCasa,
         palpiteFora,
       });
-      await this.reagir(client, message.id, '✅');
+      await this.reagir(client, message, '✅');
       await this.responderMarcando(client, message, resultado.mensagem);
     } catch (error) {
       console.error('Erro ao executar comando palpitarjogo:', error);
@@ -132,7 +130,7 @@ export class ComandoPalpitarJogo extends BaseCommand {
         message,
         '❌ Ops! Ocorreu um erro inesperado ao tentar registrar seu palpite. Tente novamente mais tarde.'
       );
-      await this.reagir(client, message.id, '❌');
+      await this.reagir(client, message, '❌');
     }
   }
 }

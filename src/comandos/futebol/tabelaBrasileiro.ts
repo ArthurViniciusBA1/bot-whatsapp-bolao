@@ -1,4 +1,4 @@
-import { Client, Message } from '@open-wa/wa-automate';
+import * as baileys from "@whiskeysockets/baileys";
 import { BaseCommand } from '@/abstracts/BaseCommand';
 import { obterTabelaBrasileiraoA } from '@/modulos/futebol';
 
@@ -32,11 +32,11 @@ export class TabelaCommand extends BaseCommand {
    * @async
    * @method executar
    * @description Executa o comando para buscar e formatar a tabela do Brasileirão.
-   * @param {Client} client - Instância do cliente WA.
-   * @param {Message} message - Objeto da mensagem original.
+   * @param {WASocket} client - Instância do cliente WA.
+   * @param {WAMessage} message - Objeto da mensagem original.
    * @returns {Promise<void>}
    */
-  async executar(client: Client, message: Message): Promise<void> {
+  async executar(client: baileys.WASocket, message: baileys.WAMessage): Promise<void> {
     const times = await obterTabelaBrasileiraoA();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const texto = this.formatarTabela(times as any);

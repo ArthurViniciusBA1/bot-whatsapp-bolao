@@ -1,33 +1,21 @@
-FROM node:18-alpine
+FROM oven/bun:1-alpine
 
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont \
-    && rm -rf /var/cache/apk/*
-
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
+# Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-COPY package*.json ./
-COPY bun.lock ./
+RUN apk add --no-cache git ffmpeg
 
-RUN npm ci --only=production
+# Copia os arquivos de definição de pacotes
+COPY package.json bun.lock* ./
 
+# Instala as dependências de produção
+RUN bun install --production
+
+# Copia o restante do código da aplicação
 COPY . .
 
-RUN npm run build
+# Executa o build da aplicação (transpila o TypeScript)
+RUN bun run build
 
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S bot -u 1001
-
-RUN chown -R bot:nodejs /app
-USER bot
-
-CMD ["npm", "start"]
+# O comando para iniciar o bot quando o container for executado
+CMD ["bun", "run", "start"]

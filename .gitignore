@@ -3,6 +3,8 @@ _IGNORE_**
 **.json
 .env
 
+**auth_info**
+
 
 # managed
 **.data.json

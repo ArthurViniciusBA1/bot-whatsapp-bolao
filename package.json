@@ -1,40 +1,40 @@
 {
-  "name": "arthurbot",
-  "version": "1.0.0",
+  "name": "arthurbot-bun",
+  "version": "4.0.0",
   "type": "commonjs",
   "scripts": {
-    "dev": "tsnd --transpile-only --ignore-watch node_modules -r tsconfig-paths/register src/index.ts",
+    "dev": "bun --watch src/index.ts",
     "build": "tsc && tsc-alias",
-    "start": "node dist/index.js",
-    "lint": "eslint \"src/**/*.ts\"",
-    "lint:fix": "eslint \"src/**/*.ts\" --fix",
-    "format": "prettier --write \"src/**/*.ts\""
+    "start": "bun dist/index.js",
+    "lint": "bunx eslint \"src/**/*.ts\"",
+    "lint:fix": "bunx eslint \"src/**/*.ts\" --fix",
+    "format": "bunx prettier --write \"src/**/*.ts\""
   },
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "dependencies": {
-    "@open-wa/wa-automate": "^4.76.0",
+    "@hapi/boom": "^10.0.1",
     "@typescript-eslint/eslint-plugin": "^8.33.0",
     "@typescript-eslint/parser": "^8.33.0",
+    "@whiskeysockets/baileys": "^6.7.18",
     "dayjs": "^1.11.13",
     "dotenv": "^16.5.0",
     "emoji-regex": "^10.4.0",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.0",
+    "jimp": "^0.22.12",
     "jsdom": "^26.1.0",
-    "moment-timezone": "^0.5.48",
+    "link-preview-js": "^3.1.0",
     "mongoose": "^8.15.1",
+    "node-cache": "^5.1.2",
+    "pino": "^9.7.0",
     "prettier": "^3.5.3",
-    "sqlite3": "^5.1.7",
-    "ts-node-dev": "^2.0.0",
-    "tsc-alias": "^1.8.16",
-    "typescript-eslint": "^8.33.0",
-    "user-agents": "^1.1.531"
+    "qrcode-terminal": "^0.12.0",
+    "user-agents": "^1.1.531",
+    "wa-sticker-formatter": "^4.4.4",
+    "tsc-alias": "^1.8.16"
   },
   "devDependencies": {
-    "@types/sqlite3": "^3.1.11",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3"
   }
 }

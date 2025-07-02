@@ -5,7 +5,7 @@ import {
   removerUsuario,
   estaNaLista,
 } from '@/utils/naoMarcarUsuarios';
-import { Client, Message } from '@open-wa/wa-automate';
+import * as baileys from "@whiskeysockets/baileys";
 
 export class ComandoNaoMeMarque extends BaseCommand {
   /**
@@ -33,20 +33,19 @@ export class ComandoNaoMeMarque extends BaseCommand {
    * @async
    * @method executar
    * @description Executa o comando para não ser marcado pelo bot em todas as ações de marcação do usuário.
-   * @param {Client} client - Instância do cliente WA.
-   * @param {Message} message - Objeto da mensagem original.
+   * @param {WASocket} client - Instância do cliente WA.
+   * @param {WAMessage} message - Objeto da mensagem original.
    * @param {string[]} args - Argumentos passados para o comando (usados para uma mensagem opcional).
    * @returns {Promise<void>}
    */
   async executar(
-    client: Client,
-    message: Message,
+    client: baileys.WASocket,
+    message: baileys.WAMessage,
     _args: string[]
   ): Promise<void> {
     try {
-      const usuario = message.sender.id;
-      const nomeUsuario =
-        message.sender.pushname || message.sender.name || 'Usuário';
+      const usuario = this.getSenderJid(message);
+      const nomeUsuario = this.getSenderName(message);
 
       const jaEstaNaLista = await estaNaLista(usuario);
       let mensagemResposta: string;

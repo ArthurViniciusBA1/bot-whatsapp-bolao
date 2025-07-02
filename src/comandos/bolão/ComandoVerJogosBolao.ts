@@ -1,4 +1,4 @@
-import { Client, Message, ContactId } from '@open-wa/wa-automate';
+import * as baileys from '@whiskeysockets/baileys';
 import { BaseCommand } from '@/abstracts';
 import { SomenteGrupo } from '@/decorators';
 import {
@@ -51,30 +51,36 @@ export class ComandoVerJogosBolao extends BaseCommand {
    * @method executar
    * @description Executa o comando para listar os jogos do bolão.
    * Administradores verão uma seção adicional com jogos pendentes de resultado.
-   * @param {Client} client - Instância do cliente WA.
-   * @param {Message} message - Objeto da mensagem original.
+   * @param {WASocket} client - Instância do cliente WA.
+   * @param {WAMessage} message - Objeto da mensagem original.
    * @param {string[]} [_args] - Argumentos passados (não utilizados neste comando).
    * @returns {Promise<void>}
    */
   @SomenteGrupo
   async executar(
-    client: Client,
-    message: Message,
+    client: baileys.WASocket,
+    message: baileys.WAMessage,
     _args?: string[]
   ): Promise<void> {
-    const idGrupo = message.chatId;
+    const idGrupo = this.getChatJid(message);
     let isAdmin = false;
 
-    if (message.chat.groupMetadata && message.chat.groupMetadata.participants) {
-      const senderParticipant = message.chat.groupMetadata.participants.find(
-        (p) => {
-          const participantId = (
-            typeof p.id === 'string' ? p.id : p.id._serialized
-          ) as ContactId;
-          return participantId === message.sender.id;
-        }
+    // Obtém o JID do remetente
+    const senderJid = this.getSenderJid(message);
+
+    // Obtém os participantes do grupo via sock.groupMetadata
+    let groupMetadata;
+    try {
+      groupMetadata = await client.groupMetadata(idGrupo);
+    } catch (e) {
+      await this.responderMarcando(client, message, '❌ Não foi possível obter os participantes do grupo.');
+      return;
+    }
+    if (groupMetadata && groupMetadata.participants) {
+      const senderParticipant = groupMetadata.participants.find(
+        (p) => p.id === senderJid
       );
-      isAdmin = senderParticipant?.isAdmin || false;
+      isAdmin = senderParticipant?.admin === 'admin' || senderParticipant?.admin === 'superadmin';
     }
 
     let resposta = '';

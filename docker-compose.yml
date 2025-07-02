@@ -1,38 +1,31 @@
 services:
   bot:
     build: .
-    container_name: novo-bot
+    container_name: bolao-bot
     restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-      - NUMERO_DONO=${NUMERO_DONO}
-      - PREFIX=${PREFIX}
-      - NOME_DE_EXIBICAO=${NOME_DE_EXIBICAO}
-      - NOME_AUTOR_FIGURINHAS=${NOME_AUTOR_FIGURINHAS}
-      - NOME_PACOTE_FIGURINHAS=${NOME_PACOTE_FIGURINHAS}
-      - MONGO_URI=${MONGO_URI}
-      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    
+    env_file:
+      - ./.env
+      
     volumes:
-      - bot-session-data:/app/sessions
+      # Persiste os dados de autenticação do WhatsApp para não precisar escanear o QR code toda vez
+      - bot-session-data:/app/baileys_auth_info
+      # Persiste os logs do bot (opcional, mas bom para depuração)
       - bot-logs:/app/logs
+      # Persiste os dados do banco de dados de usuários que não devem ser marcados
+      - bot-database:/app/dist/database
+      
     networks:
       - bot-network
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
-        reservations:
-          memory: 512M
-          cpus: '0.25'
 
 volumes:
   bot-session-data:
     driver: local
   bot-logs:
     driver: local
+  bot-database:
+    driver: local
 
 networks:
   bot-network:
-    driver: bridge 
+    driver: bridge
